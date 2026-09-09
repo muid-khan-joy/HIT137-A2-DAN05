@@ -12,7 +12,7 @@ lower_second = "opqrstuvwxyz"      # o to z
 upper_first = "ABCDEFGHIJKLM"      # A to M
 upper_second = "NOPQRSTUVWXYZ"     # N to Z
 digits = "0123456789"              # 0 to 9
- 
+ # other characters remain unchanged
  
 # ===== Section 2: change one character (Member 1) =====
  
@@ -88,7 +88,7 @@ def decrypt_text(text, shift1, shift2):
  
 def read_text_file(path):
     # newline="" keeps the line endings exactly as they are in the file.
-    my_file = open('raw_text.txt', "r", encoding="utf-8", newline="")
+    my_file = open(path, "r", encoding="utf-8", newline="")
     text = my_file.read()
     my_file.close()
     return text
