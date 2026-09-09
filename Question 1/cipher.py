@@ -1,8 +1,8 @@
 
 # HIT137 Assignment 2 - Question 1
 # Encrypt a text file, decrypt it again, then check the two files match.
-# Member 1 --> Trong Hieu Pham
-# Member 2 --> Saurav Suniara
+# Member 1 --> THP
+# Member 2 --> SS
  
  
 # ===== Section 1: the character groups (Member 1) =====
@@ -87,7 +87,7 @@ def decrypt_text(text, shift1, shift2):
 # ===== Section 3: reading and writing files (Member 2) =====
  
 def read_text_file(path):
-    # newline="" keeps the line endings exactly as they are in the file.
+    
     my_file = open(path, "r", encoding="utf-8", newline="")
     text = my_file.read()
     my_file.close()
@@ -132,7 +132,7 @@ def verify_files(original_path: str, decrypted_path: str) -> bool:
  
 # ===== Section 5: asking the user and running everything (Member 2) =====
  
-def ask_for_shift(question):
+def user_input(question):
     # Keep asking until the user types a number that is 0 or bigger.
     while True:
         answer = input(question)
@@ -142,12 +142,12 @@ def ask_for_shift(question):
  
  
 def main():
-    print("HIT137 Assignment 2 - Question 1")
+    print("====HIT137 Assignment 2 - Question 1====")
     print()
  
-    # Step 1: ask for the two shift values
-    shift1 = ask_for_shift("Enter shift1: ")
-    shift2 = ask_for_shift("Enter shift2: ")
+    # Step 1: request user input for the two shift values
+    shift1 = user_input("Enter shift1: ")
+    shift2 = user_input("Enter shift2: ")
     print()
  
     # Step 2: encrypt
