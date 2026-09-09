@@ -1,6 +1,8 @@
-Y
+
 # HIT137 Assignment 2 - Question 1
 # Encrypt a text file, decrypt it again, then check the two files match.
+# Member 1 --> Trong Hieu Pham
+# Member 2 --> Saurav Suniara
  
  
 # ===== Section 1: the character groups (Member 1) =====
@@ -86,7 +88,7 @@ def decrypt_text(text, shift1, shift2):
  
 def read_text_file(path):
     # newline="" keeps the line endings exactly as they are in the file.
-    my_file = open(path, "r", encoding="utf-8", newline="")
+    my_file = open('raw_text.txt', "r", encoding="utf-8", newline="")
     text = my_file.read()
     my_file.close()
     return text
