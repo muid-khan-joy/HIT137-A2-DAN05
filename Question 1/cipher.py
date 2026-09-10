@@ -87,17 +87,15 @@ def decrypt_text(text, shift1, shift2):
 # ===== Section 3: reading and writing files (Member 2) =====
  
 def read_text_file(path):
-    
-    my_file = open(path, "r", encoding="utf-8", newline="")
-    text = my_file.read()
-    my_file.close()
-    return text
- 
- 
+    # newline="" keeps the line endings exactly as they are in the file.
+  with open(path, "r", encoding="utf-8", newline="") as my_file:
+
+    return my_file.read()
+
+
 def write_text_file(path, text):
-    my_file = open(path, "w", encoding="utf-8", newline="")
+  with open(path, "w", encoding="utf-8", newline="") as my_file:
     my_file.write(text)
-    my_file.close()
  
  
 # ===== Section 4: the three functions the assignment asks for (Member 2) =====
