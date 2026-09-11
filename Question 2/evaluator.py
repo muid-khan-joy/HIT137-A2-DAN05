@@ -1,31 +1,34 @@
 """
-HIT137 Assignment 2
-Member 3 contribution: Question 2 tokenizer and recursive descent parser.
+evaluator.py - HIT137 Assignment 2, Question 2
 
-This file intentionally contains the tokenizer/parser portion only.
-Member 4 can add evaluation, output.txt generation, result formatting,
-and evaluate_file(input_path) around these functions.
+Reads expressions from a text file, tokenizes and parses each one,
+evaluates the result, and writes program_output.txt in the required
+Input / Tree / Tokens / Result format.
 
-No parser classes are used.
+No classes are used anywhere.
+
+Member 3 --> Muid Khan Joy       --> S373799
+Member 4 --> Abishek Rajeshkumar --> S367359
 """
 
-from typing import Optional
+import os
 
 
-# AST node shapes used by this parser:
+DEFAULT_INPUT_FILE = "sample_input.txt"
+OUTPUT_FILE = "program_output.txt"
+
+
+# ---------------------------------------------------------------------------
+# Tokenizer + recursive-descent parser
+# ---------------------------------------------------------------------------
 #
-# Number:
-#   ("num", "3")
+# AST node shapes produced by this parser:
 #
-# Unary negation:
-#   ("neg", operand)
-#
-# Binary operation:
-#   ("bin", operator, left, right)
-#
-# Keeping numbers as their original lexemes preserves the exact numeric
-# literal for token and tree generation. Member 4 can convert them to float
-# during evaluation.
+#   Number:           ("num", "3")        -- value is the raw lexeme (a
+#                                             string); evaluate() converts
+#                                             it to float when needed
+#   Unary negation:   ("neg", operand)
+#   Binary operation: ("bin", operator, left, right)
 
 
 def tokenize(expression: str) -> list[tuple[str, str]]:
@@ -62,13 +65,10 @@ def tokenize(expression: str) -> list[tuple[str, str]]:
     while i < length:
         ch = expression[i]
 
-        # Whitespace is ignored during tokenization.
         if ch.isspace():
             i += 1
             continue
 
-        # Number literal:
-        # one or more digits, optionally followed by "." and one or more digits.
         if ch.isdigit():
             start = i
 
@@ -77,11 +77,8 @@ def tokenize(expression: str) -> list[tuple[str, str]]:
 
             if i < length and expression[i] == ".":
                 i += 1
-
-                # A decimal point must be followed by at least one digit.
                 if i >= length or not expression[i].isdigit():
                     raise ValueError("Malformed number literal")
-
                 while i < length and expression[i].isdigit():
                     i += 1
 
@@ -117,35 +114,27 @@ def format_tokens(tokens: list[tuple[str, str]], include_end: bool = True) -> st
         [NUM:3] [OP:+] [NUM:5] [END]
     """
     parts: list[str] = []
-
     for token_type, value in tokens:
         if token_type == "END":
             if include_end:
                 parts.append("[END]")
             continue
-
         parts.append(f"[{token_type}:{value}]")
-
     return " ".join(parts)
 
 
-def current_token(
-    tokens: list[tuple[str, str]], position: int
-) -> tuple[str, str]:
+def current_token(tokens: list[tuple[str, str]], position: int) -> tuple[str, str]:
     """Safely return the token at position."""
     if position < 0 or position >= len(tokens):
         return ("END", "")
     return tokens[position]
 
 
-def parse_expression_tokens(
-    tokens: list[tuple[str, str]]
-) -> tuple:
+def parse_expression_tokens(tokens: list[tuple[str, str]]) -> tuple:
     """
     Parse a complete token list and return an AST.
 
-    The precedence implemented from lowest to highest is:
-
+    Precedence implemented, lowest to highest:
         1. + -
         2. * / % and implicit multiplication
         3. unary -
@@ -164,7 +153,6 @@ def parse_expression_tokens(
         raise ValueError("Token stream must end with END")
 
     node, position = parse_add_sub(tokens, 0)
-
     token_type, token_value = current_token(tokens, position)
 
     if token_type != "END":
@@ -176,9 +164,7 @@ def parse_expression_tokens(
     return node
 
 
-def parse_add_sub(
-    tokens: list[tuple[str, str]], position: int
-) -> tuple[tuple, int]:
+def parse_add_sub(tokens: list[tuple[str, str]], position: int) -> tuple[tuple, int]:
     """
     Parse + and - at the lowest precedence level.
 
@@ -189,7 +175,6 @@ def parse_add_sub(
 
     while True:
         token_type, token_value = current_token(tokens, position)
-
         if token_type == "OP" and token_value in ("+", "-"):
             operator = token_value
             right, position = parse_mul_div_mod(tokens, position + 1)
@@ -200,9 +185,7 @@ def parse_add_sub(
     return left, position
 
 
-def parse_mul_div_mod(
-    tokens: list[tuple[str, str]], position: int
-) -> tuple[tuple, int]:
+def parse_mul_div_mod(tokens: list[tuple[str, str]], position: int) -> tuple[tuple, int]:
     """
     Parse *, /, %, and implicit multiplication.
 
@@ -238,9 +221,7 @@ def parse_mul_div_mod(
     return left, position
 
 
-def is_implicit_multiplication(
-    tokens: list[tuple[str, str]], position: int
-) -> bool:
+def is_implicit_multiplication(tokens: list[tuple[str, str]], position: int) -> bool:
     """
     Return True when the boundary at `position` represents implicit
     multiplication.
@@ -250,11 +231,9 @@ def is_implicit_multiplication(
         RPAREN followed by NUM
         RPAREN followed by LPAREN
 
-    This intentionally rejects:
-        NUM followed by NUM
-
-    That follows the assignment statement that adjacent numbers such as
-    "2 3" are not implicit multiplication.
+    This intentionally rejects NUM followed by NUM, since the assignment
+    states that adjacent numbers such as "2 3" are not implicit
+    multiplication.
     """
     if position <= 0:
         return False
@@ -264,26 +243,20 @@ def is_implicit_multiplication(
 
     if previous_type == "NUM" and next_type == "LPAREN":
         return True
-
     if previous_type == "RPAREN" and next_type in ("NUM", "LPAREN"):
         return True
 
     return False
 
 
-def parse_unary(
-    tokens: list[tuple[str, str]], position: int
-) -> tuple[tuple, int]:
+def parse_unary(tokens: list[tuple[str, str]], position: int) -> tuple[tuple, int]:
     """
     Parse unary negation.
 
     Grammar:
         unary := '-' unary | power
 
-    Repeated unary negation is therefore valid:
-        --5
-        ---5
-
+    Repeated unary negation is valid: --5, ---5.
     Unary + is not supported and produces a syntax error.
     """
     token_type, token_value = current_token(tokens, position)
@@ -298,30 +271,20 @@ def parse_unary(
     return parse_power(tokens, position)
 
 
-def parse_power(
-    tokens: list[tuple[str, str]], position: int
-) -> tuple[tuple, int]:
+def parse_power(tokens: list[tuple[str, str]], position: int) -> tuple[tuple, int]:
     """
     Parse exponentiation.
 
     Grammar:
         power := primary ('^' unary)?
 
-    Parsing the right operand through `parse_unary` makes exponentiation
-    right associative while also allowing unary negation after ^.
-
-    Examples:
-        2 ^ 3 ^ 2
-        -> (^ 2 (^ 3 2))
-
-        -2 ^ 2
-        -> (neg (^ 2 2))
-
-        2 ^ -3
-        -> (^ 2 (neg 3))
+    Parsing the right operand through parse_unary makes exponentiation
+    right associative while also allowing unary negation after ^:
+        2 ^ 3 ^ 2  -> (^ 2 (^ 3 2))
+        -2 ^ 2     -> (neg (^ 2 2))
+        2 ^ -3     -> (^ 2 (neg 3))
     """
     left, position = parse_primary(tokens, position)
-
     token_type, token_value = current_token(tokens, position)
 
     if token_type == "OP" and token_value == "^":
@@ -331,9 +294,7 @@ def parse_power(
     return left, position
 
 
-def parse_primary(
-    tokens: list[tuple[str, str]], position: int
-) -> tuple[tuple, int]:
+def parse_primary(tokens: list[tuple[str, str]], position: int) -> tuple[tuple, int]:
     """
     Parse a number or parenthesised sub-expression.
 
@@ -347,11 +308,9 @@ def parse_primary(
 
     if token_type == "LPAREN":
         node, position = parse_add_sub(tokens, position + 1)
-
         close_type, _ = current_token(tokens, position)
         if close_type != "RPAREN":
             raise ValueError("Missing closing parenthesis")
-
         return node, position + 1
 
     if token_type == "RPAREN":
@@ -361,8 +320,7 @@ def parse_primary(
         raise ValueError("Unexpected end of expression")
 
     raise ValueError(
-        f"Expected a number, unary '-', or '(', got "
-        f"{token_type}:{token_value}"
+        f"Expected a number, unary '-', or '(', got {token_type}:{token_value}"
     )
 
 
@@ -370,24 +328,16 @@ def tree_to_string(node: tuple) -> str:
     """
     Convert the AST into the assignment's prefix tree format.
 
-    Examples:
-        ("num", "5")
-        -> 5
-
-        ("neg", ("num", "5"))
-        -> (neg 5)
-
-        ("bin", "+", ("num", "3"), ("num", "5"))
-        -> (+ 3 5)
+        ("num", "5")                              -> 5
+        ("neg", ("num", "5"))                     -> (neg 5)
+        ("bin", "+", ("num", "3"), ("num", "5"))  -> (+ 3 5)
     """
     kind = node[0]
 
     if kind == "num":
         return node[1]
-
     if kind == "neg":
         return f"(neg {tree_to_string(node[1])})"
-
     if kind == "bin":
         operator = node[1]
         left = tree_to_string(node[2])
@@ -397,113 +347,40 @@ def tree_to_string(node: tuple) -> str:
     raise ValueError(f"Unknown AST node type: {kind!r}")
 
 
-def parse_expression(expression: str) -> dict:
-    """
-    Convenience function for Member 4.
-
-    It performs tokenization and parsing and returns:
-        {
-            "tokens_raw": [...],
-            "tokens": "[NUM:3] [OP:+] [NUM:5] [END]",
-            "ast": (...),
-            "tree": "(+ 3 5)"
-        }
-
-    Errors are intentionally raised as ValueError so Member 4 can decide
-    how to convert them into the required ERROR output.
-    """
-    tokens = tokenize(expression)
-    ast = parse_expression_tokens(tokens)
-
-    return {
-        "tokens_raw": tokens,
-        "tokens": format_tokens(tokens),
-        "ast": ast,
-        "tree": tree_to_string(ast),
-    }
-
-
-def try_parse_expression(expression: str) -> dict:
-    """
-    Optional integration helper.
-
-    Unlike parse_expression(), this function converts tokenizer/parser
-    failures into a simple ERROR structure. It does not evaluate results.
-    """
-    try:
-        parsed = parse_expression(expression)
-        return {
-            "input": expression,
-            "tree": parsed["tree"],
-            "tokens": parsed["tokens"],
-            "ast": parsed["ast"],
-            "error": None,
-        }
-    except ValueError as exc:
-        return {
-            "input": expression,
-            "tree": "ERROR",
-            "tokens": "ERROR",
-            "ast": None,
-            "error": str(exc),
-        }
-
-
 def _self_test() -> None:
     """
-    Lightweight parser tests for Member 3.
-
-    These do not evaluate arithmetic results. They verify tokenization,
-    precedence, associativity, unary negation, implicit multiplication,
-    and syntax errors.
+    Self-tests for the tokenizer and parser (tokenization, precedence,
+    associativity, unary negation, implicit multiplication, and syntax
+    errors). Does not test evaluation.
     """
     valid_cases = {
         "3 + 5": "(+ 3 5)",
         "2 + 3 * 4": "(+ 2 (* 3 4))",
         "-(3 + 4)": "(neg (+ 3 4))",
         "--5": "(neg (neg 5))",
-        "(10 - 2) * 3 + -4 / 2":
-            "(+ (* (- 10 2) 3) (/ (neg 4) 2))",
-
-        # Additional precedence and associativity checks
+        "(10 - 2) * 3 + -4 / 2": "(+ (* (- 10 2) 3) (/ (neg 4) 2))",
         "2 ^ 3 ^ 2": "(^ 2 (^ 3 2))",
         "-2 ^ 2": "(neg (^ 2 2))",
         "2 ^ -3": "(^ 2 (neg 3))",
         "3 * -2": "(* 3 (neg 2))",
-
-        # Implicit multiplication checks
         "2(3 + 4)": "(* 2 (+ 3 4))",
         "(2 + 3)4": "(* (+ 2 3) 4)",
         "(2 + 3)(4 + 5)": "(* (+ 2 3) (+ 4 5))",
-
-        # Parsing should succeed even though Member 4 will later produce
-        # Result: ERROR for division by zero during evaluation.
         "1 / 0": "(/ 1 0)",
     }
 
     for expression, expected_tree in valid_cases.items():
-        parsed = parse_expression(expression)
-        actual_tree = parsed["tree"]
+        ast = parse_expression_tokens(tokenize(expression))
+        actual_tree = tree_to_string(ast)
         assert actual_tree == expected_tree, (
-            f"{expression!r}: expected {expected_tree!r}, "
-            f"got {actual_tree!r}"
+            f"{expression!r}: expected {expected_tree!r}, got {actual_tree!r}"
         )
 
-    invalid_cases = [
-        "3 @ 5",
-        "+5",
-        "2 3",
-        "(3 + 4",
-        "3 + 4)",
-        "5.",
-        ".5",
-        "3 +",
-        "",
-    ]
+    invalid_cases = ["3 @ 5", "+5", "2 3", "(3 + 4", "3 + 4)", "5.", ".5", "3 +", ""]
 
     for expression in invalid_cases:
         try:
-            parse_expression(expression)
+            parse_expression_tokens(tokenize(expression))
         except ValueError:
             pass
         else:
@@ -512,6 +389,206 @@ def _self_test() -> None:
             )
 
 
+# ---------------------------------------------------------------------------
+# Evaluation, formatting, and output.txt generation
+# ---------------------------------------------------------------------------
+
+def evaluate(node: tuple) -> float:
+    """
+    Walk a parsed tree and compute its numeric value (a float).
+
+    Raises ZeroDivisionError for division/modulo by zero, OverflowError
+    for results too large to represent, and ValueError for anything else
+    that can't produce a valid real result (e.g. a fractional power of a
+    negative number, which would otherwise silently become a complex
+    number). evaluate_file() below turns any of these into the "ERROR"
+    shown in the Result line -- this function's only job is to compute
+    the value or raise.
+    """
+    kind = node[0]
+
+    if kind == "num":
+        return float(node[1])
+
+    if kind == "neg":
+        return -evaluate(node[1])
+
+    if kind == "bin":
+        op, left, right = node[1], node[2], node[3]
+        lval = evaluate(left)
+        rval = evaluate(right)
+
+        if op == "+":
+            return lval + rval
+        if op == "-":
+            return lval - rval
+        if op == "*":
+            return lval * rval
+        if op == "/":
+            if rval == 0:
+                raise ZeroDivisionError("division by zero")
+            return lval / rval
+        if op == "%":
+            if rval == 0:
+                raise ZeroDivisionError("modulo by zero")
+            return lval % rval
+        if op == "^":
+            result = lval ** rval
+            if isinstance(result, complex):
+                raise ValueError("result is not a real number")
+            return result
+
+    raise ValueError(f"Unknown tree node: {node}")
+
+
+def format_number(value: float) -> str:
+    """
+    Apply the assignment's display rule to a result value: whole numbers
+    show with no decimal point (8.0 -> "8"), anything else is rounded to
+    4 decimal places (trailing zeros from that rounding are trimmed, so
+    5.5 -> "5.5" rather than "5.5000").
+    """
+    cleaned = round(value, 9)  # round away float noise before checking is_integer
+
+    if float(cleaned).is_integer():
+        return str(int(round(cleaned)))
+
+    rounded = round(cleaned, 4)
+    return f"{rounded:.4f}".rstrip("0").rstrip(".")
+
+
+def evaluate_file(input_path: str) -> list[dict]:
+    """
+    Read expressions from input_path (one per line), evaluate each one,
+    write program_output.txt next to the input file, and return the same
+    information as a list of dicts.
+
+    Each dict has keys "input", "tree", "tokens", "result":
+        - "tree" and "tokens" are always strings (either the formatted
+          value, or "ERROR").
+        - "result" is a float on success, or the string "ERROR".
+
+    Three independent things can go wrong, and each is handled at the
+    stage where it actually happens, which is why (for example) "1 / 0"
+    still shows a correct Tree and Tokens line but an ERROR Result:
+        1. tokenizing fails               -> tree, tokens, result all ERROR
+        2. tokenizing OK, parsing fails    -> tokens OK, tree/result ERROR
+        3. parsing OK, evaluation fails    -> tokens/tree OK, result ERROR
+    """
+    output_path = os.path.join(
+        os.path.dirname(os.path.abspath(input_path)),
+        OUTPUT_FILE,
+    )
+
+    with open(input_path, "r", encoding="utf-8") as f:
+        lines = [line.rstrip("\n") for line in f]
+
+    # blank lines in the input file aren't expressions to evaluate -- this
+    # mainly avoids a spurious ERROR block for a trailing blank line at EOF
+    expressions = [line for line in lines if line.strip() != ""]
+
+    results = []
+    blocks = []
+
+    for expr_text in expressions:
+        tokens = None
+        tree_node = None
+
+        tree_display = "ERROR"
+        tokens_display = "ERROR"
+        result_display = "ERROR"
+        result_value = "ERROR"
+
+        try:
+            tokens = tokenize(expr_text)
+            tokens_display = format_tokens(tokens)
+        except ValueError:
+            tokens = None
+
+        if tokens is not None:
+            try:
+                tree_node = parse_expression_tokens(tokens)
+                tree_display = tree_to_string(tree_node)
+            except ValueError:
+                tree_node = None
+
+        if tree_node is not None:
+            try:
+                value = evaluate(tree_node)
+                result_value = float(value)
+                result_display = format_number(result_value)
+            except (ZeroDivisionError, OverflowError, ValueError):
+                result_value = "ERROR"
+                result_display = "ERROR"
+
+        results.append({
+            "input": expr_text,
+            "tree": tree_display,
+            "tokens": tokens_display,
+            "result": result_value,
+        })
+
+        blocks.append(
+            f"Input: {expr_text}\n"
+            f"Tree: {tree_display}\n"
+            f"Tokens: {tokens_display}\n"
+            f"Result: {result_display}"
+        )
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("\n\n".join(blocks))
+        if blocks:
+            f.write("\n")
+
+    return results
+
+
+def ask_for_input_file() -> str:
+    """
+    Ask the user for the input text file.
+
+    Pressing Enter selects sample_input.txt.
+    Any manually entered file name must end with .txt and must exist.
+    """
+    default_file = DEFAULT_INPUT_FILE
+
+    while True:
+        user_input = input(
+            f"Enter input file name [{default_file}]: "
+        ).strip()
+
+        input_path = user_input if user_input else default_file
+
+        if not input_path.lower().endswith(".txt"):
+            print("Error: the input file name must have a .txt extension.")
+            continue
+
+        if not os.path.isfile(input_path):
+            print(f"Error: file not found: {input_path}")
+            continue
+
+        return input_path
+
+
+def main() -> None:
+    """Run the expression evaluator as an interactive program."""
+    input_path = ask_for_input_file()
+
+    try:
+        rows = evaluate_file(input_path)
+    except OSError as exc:
+        print(f"Error: unable to read or write the file: {exc}")
+        return
+
+    output_path = os.path.join(
+        os.path.dirname(os.path.abspath(input_path)),
+        OUTPUT_FILE,
+    )
+
+    print()
+    print(f"Processed {len(rows)} expression(s).")
+    print(f"Output written to: {output_path}")
+
+
 if __name__ == "__main__":
-    _self_test()
-    print("Member 3 tokenizer/parser tests passed.")
+    main()
