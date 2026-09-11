@@ -1,93 +1,190 @@
-# HIT137 Assignment 2 | DAN05
+# HIT137 Assignment 2 - Group DAN05
 
-<div align="center">
+This repository contains the files for HIT137 Group Assignment 2.
 
-# HIT137-A2-DAN05
+The assignment has two programming questions:
 
-### Group Assignment 2
-
-**HIT137 | Software Now**
-
-![Python](https://img.shields.io/badge/Python-Programming-blue?logo=python\&logoColor=white)
-![GitHub](https://img.shields.io/badge/GitHub-Collaboration-black?logo=github)
-![Status](https://img.shields.io/badge/Status-In%20Progress-orange)
-![Assignment](https://img.shields.io/badge/Assessment-Group%20Assignment%202-purple)
-
-</div>
-
----
-
-## About This Repository
-
-This repository contains the work completed by **Group DAN05** for **HIT137 Group Assignment 2**.
-
-The assessment consists of two Python programming tasks:
-
-1. A file encryption, decryption, and verification program.
-2. A mathematical expression evaluator using recursive descent parsing.
-
-The assignment also requires the group to work collaboratively through a **public GitHub repository**, with individual contributions recorded through GitHub.
-
----
+1. Question 1: file encryption, decryption, and verification
+2. Question 2: mathematical expression evaluator using tokenization and recursive descent parsing
 
 ## Group Members
 
-<table>
-<tr>
-<td align="center" width="25%">
+| Member | Student ID | Main Contribution |
+|---|---|---|
+| Muid Khan Joy | S373799 | Question 2: tokenizer and recursive descent parser |
+| Abishek Rajeshkumar | S367359 | Question 2: evaluation, error handling, result formatting, and output generation |
+| Saurav Suniara | S408811 | Question 1: decryption, verification, file handling, and program flow |
+| Trong Hieu Pham | S406541 | Question 1: encryption and character shifting logic |
 
-### 👤
+The GitHub commit history records the contributions made by each group member.
 
-**Muid Khan Joy**
+## Folder Structure
 
-Student ID
-`S373799`
+```text
+.
+├── Question 1
+│   ├── README_Q1.md
+│   ├── cipher.py
+│   └── raw_text.txt
+├── Question 2
+│   ├── evaluator.py
+│   ├── sample_input.txt
+│   └── sample_output.txt
+├── README.md
+└── githublink.txt
+```
 
-</td>
+Generated files are created when the programs are run.
 
-<td align="center" width="25%">
+Question 1 generates:
 
-### 👤
+```text
+Question 1/encrypted_text.txt
+Question 1/decrypted_text.txt
+```
 
-**Abishek Rajeshkumar**
+Question 2 generates:
 
-Student ID
-`S367359`
+```text
+Question 2/program_output.txt
+```
 
-</td>
+## Requirements
 
-<td align="center" width="25%">
+- Python 3
+- No external Python packages are required
 
-### 👤
+## Running the Programs from the Repository Root
 
-**Saurav Suniara**
+Because each program uses files stored inside its own folder, run the program from that folder while starting the command from the repository root.
 
-Student ID
-`S408811`
+### Question 1
 
-</td>
+macOS / Linux:
 
-<td align="center" width="25%">
+```bash
+(cd "Question 1" && python3 cipher.py)
+```
 
-### 👤
+If `python` is the Python 3 command on your system:
 
-**Trong Hieu Pham**
+```bash
+(cd "Question 1" && python cipher.py)
+```
 
-Student ID
-`S406541`
+Windows PowerShell:
 
-</td>
-</tr>
-</table>
+```powershell
+cd "Question 1"; python cipher.py; cd ..
+```
 
----
+The program asks for two non-negative whole numbers:
 
-<div align="center">
+```text
+Enter shift1:
+Enter shift2:
+```
 
-### HIT137 | Assignment 2
+It reads `raw_text.txt`, creates `encrypted_text.txt` and `decrypted_text.txt`, and verifies that the decrypted file matches the original file.
 
-**Group DAN05**
+More information about Question 1 is available in:
 
-Muid Khan Joy • Abishek Rajeshkumar • Saurav Suniara • Trong Hieu Pham
+```text
+Question 1/README_Q1.md
+```
 
-</div>
+### Question 2
+
+macOS / Linux:
+
+```bash
+(cd "Question 2" && python3 evaluator.py)
+```
+
+If `python` is the Python 3 command on your system:
+
+```bash
+(cd "Question 2" && python evaluator.py)
+```
+
+Windows PowerShell:
+
+```powershell
+cd "Question 2"; python evaluator.py; cd ..
+```
+
+The program asks for an input text file:
+
+```text
+Enter input file name [sample_input.txt]:
+```
+
+Press Enter to use the default file:
+
+```text
+sample_input.txt
+```
+
+To use another input file, enter its filename with the `.txt` extension. The file should be placed inside the `Question 2` folder before running the program.
+
+The result is written to:
+
+```text
+Question 2/program_output.txt
+```
+
+The provided `sample_output.txt` can be used to compare the expected output format.
+
+## Question 1 Summary
+
+`cipher.py` performs the following steps:
+
+1. Reads `raw_text.txt`.
+2. Encrypts the text using the two shift values entered by the user.
+3. Writes the encrypted text to `encrypted_text.txt`.
+4. Decrypts the encrypted text.
+5. Writes the decrypted text to `decrypted_text.txt`.
+6. Compares the decrypted file with the original file.
+
+## Question 2 Summary
+
+`evaluator.py` reads one mathematical expression per line and supports:
+
+- `+` and `-`
+- `*`, `/`, and `%`
+- exponentiation using `^`
+- parentheses
+- unary negation
+- implicit multiplication
+- operator precedence
+- error handling
+
+For each expression, the output contains:
+
+```text
+Input:
+Tree:
+Tokens:
+Result:
+```
+
+Example:
+
+```text
+Input: 3 + 5
+Tree: (+ 3 5)
+Tokens: [NUM:3] [OP:+] [NUM:5] [END]
+Result: 8
+```
+
+## Submission Files
+
+The repository includes:
+
+- source code for both questions
+- supplied input files
+- sample input and expected output for Question 2
+- `githublink.txt` containing the public GitHub repository link
+- README files with basic instructions
+
+The generated output files can be recreated by running the programs.
